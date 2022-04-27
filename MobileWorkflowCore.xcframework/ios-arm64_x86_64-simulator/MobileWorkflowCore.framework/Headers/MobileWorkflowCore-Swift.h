@@ -560,6 +560,7 @@ SWIFT_CLASS("_TtC18MobileWorkflowCore14StepTitleLabel")
 
 
 
+
 SWIFT_CLASS("_TtC18MobileWorkflowCore17WidthResizingView")
 @interface WidthResizingView : UIView
 @property (nonatomic) CGRect frame;
@@ -1108,6 +1109,7 @@ SWIFT_CLASS("_TtC18MobileWorkflowCore14StepTitleLabel")
 - (nonnull instancetype)initWithFrame:(CGRect)frame OBJC_DESIGNATED_INITIALIZER;
 - (nullable instancetype)initWithCoder:(NSCoder * _Nonnull)coder OBJC_DESIGNATED_INITIALIZER;
 @end
+
 
 
 
