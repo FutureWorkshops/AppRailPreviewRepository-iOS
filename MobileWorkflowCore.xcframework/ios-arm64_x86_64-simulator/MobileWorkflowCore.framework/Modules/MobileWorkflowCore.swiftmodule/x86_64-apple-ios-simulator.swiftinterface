@@ -229,6 +229,7 @@ extension Swift.Error {
 }
 extension UIKit.UIViewController {
   @_Concurrency.MainActor(unsafe) public func show(_ error: Swift.Error, actionHandler: (() -> Swift.Void)? = nil)
+  @_Concurrency.MainActor(unsafe) public func showAlert(error: Swift.Error, cancelTitle: Swift.String? = nil, actionTitle: Swift.String? = nil, isDestructive: Swift.Bool = false, actionHandler: @escaping (_ didSelectAction: Swift.Bool) -> Swift.Void)
   @_Concurrency.MainActor(unsafe) public func showConfirmationAlert(title: Swift.String, message: Swift.String?, cancelTitle: Swift.String? = nil, confirmTitle: Swift.String? = nil, isDestructive: Swift.Bool = false, actionHandler: @escaping (_ didConfirm: Swift.Bool) -> Swift.Void)
 }
 extension UIKit.UIViewController {
@@ -1916,6 +1917,16 @@ public struct StepInfo {
   @_Concurrency.MainActor(unsafe) public func configure(isLoading: Swift.Bool = false, title: Swift.String? = nil, subtitle: Swift.String? = nil, buttonConfig: MobileWorkflowCore.StateView.ButtonConfig? = nil, theme: MobileWorkflowCore.Theme = .current)
   @_Concurrency.MainActor(unsafe) public func configureForError(_ error: Swift.Error, theme: MobileWorkflowCore.Theme = .current, okAction: (() -> Swift.Void)?)
   @objc deinit
+}
+public protocol EmbedsStateViewInTableView {
+  var stateView: MobileWorkflowCore.StateView { get }
+  var tableView: UIKit.UITableView { get }
+  func embedStateView()
+  func layoutStateView()
+}
+extension MobileWorkflowCore.EmbedsStateViewInTableView where Self : UIKit.UIViewController {
+  public func embedStateView()
+  public func layoutStateView()
 }
 @objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @_Concurrency.MainActor(unsafe) public class MWAudioTableViewCell : MobileWorkflowCore.MWVideoTableViewCell {
   @_Concurrency.MainActor(unsafe) override public func setHeightConstraint()
