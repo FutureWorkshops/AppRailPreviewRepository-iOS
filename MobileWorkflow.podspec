@@ -18,6 +18,5 @@ Pod::Spec.new do |s|
     s.subspec 'Core' do |cs|
         cs.vendored_frameworks   = 'MobileWorkflowCore.xcframework'
         cs.preserve_paths        = ['MobileWorkflowCore.xcframework']
-        cs.resources             = ['MobileWorkflowCore/**/*.{xib,xcassets,strings,stringsdict,m4v,fsh,vsh}']
     end
 end
