@@ -69,6 +69,12 @@ public struct FileInformation : Swift.Codable, Swift.Hashable, Swift.Equatable {
   }
   public init(from decoder: Swift.Decoder) throws
 }
+public protocol Reinitializable {
+  func reinitialize()
+}
+extension MobileWorkflowCore.Reinitializable {
+  public func reinitialize()
+}
 public enum ParseError : Foundation.LocalizedError, Swift.CustomStringConvertible {
   case invalidStepData(cause: Swift.String)
   case invalidServerData(cause: Swift.String)
@@ -389,7 +395,7 @@ public typealias MobileWorkflowQRScannerViewController = MobileWorkflowCore.QRSc
 }
 @available(*, deprecated, renamed: "MWInstructionStepViewController")
 public typealias MobileWorkflowButtonViewController = MobileWorkflowCore.MWInstructionStepViewController
-@objc @_inheritsConvenienceInitializers @_Concurrency.MainActor(unsafe) open class MWInstructionStepViewController : MobileWorkflowCore.MWContentStepViewController {
+@objc @_Concurrency.MainActor(unsafe) open class MWInstructionStepViewController : MobileWorkflowCore.MWContentStepViewController {
   @_Concurrency.MainActor(unsafe) override public var titleMode: MobileWorkflowCore.StepViewControllerTitleMode {
     @_Concurrency.MainActor(unsafe) get
   }
@@ -471,6 +477,7 @@ public class AuthenticationService : MobileWorkflowCore.AsyncTaskService {
     set
   }
   @_Concurrency.MainActor(unsafe) @objc override dynamic open func viewDidLoad()
+  @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step, nibName nibNameOrNil: Swift.String?, bundle nibBundleOrNil: Foundation.Bundle?)
   @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step)
   @_Concurrency.MainActor(unsafe) @objc required dynamic public init?(coder: Foundation.NSCoder)
   @objc deinit
@@ -511,6 +518,7 @@ extension Foundation.FileManager {
     get
     set
   }
+  @_Concurrency.MainActor(unsafe) public init(step: MobileWorkflowCore.Step, nibName nibNameOrNil: Swift.String?, bundle nibBundleOrNil: Foundation.Bundle?)
   @_Concurrency.MainActor(unsafe) public init(step: MobileWorkflowCore.Step)
   @_Concurrency.MainActor(unsafe) @objc required dynamic public init?(coder: Foundation.NSCoder)
   @_Concurrency.MainActor(unsafe) @objc override dynamic open func viewDidLoad()
@@ -771,8 +779,21 @@ extension MobileWorkflowCore.QueueableTask {
 extension MobileWorkflowCore.QueueableTask where Self : MobileWorkflowCore.AsyncTask {
   public func perform(on service: MobileWorkflowCore.AsyncTaskService, session: MobileWorkflowCore.ContentProvider, respondOn: Dispatch.DispatchQueue, completion: @escaping (Swift.Result<Any, Swift.Error>) -> Swift.Void)
 }
+public enum SecurityStoreAccessible {
+  case whenPasscodeSetThisDeviceOnly
+  case whenUnlockedThisDeviceOnly
+  case whenUnlocked
+  case afterFirstUnlockThisDeviceOnly
+  case afterFirstUnlock
+  public static func == (a: MobileWorkflowCore.SecurityStoreAccessible, b: MobileWorkflowCore.SecurityStoreAccessible) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
 public protocol SecurityStoreProtocol {
   func storePassword(key: Swift.String, value: Foundation.Data) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
+  func storePassword(key: Swift.String, value: Foundation.Data, accessible: MobileWorkflowCore.SecurityStoreAccessible) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
   func password(for key: Swift.String) -> Swift.Result<Foundation.Data?, MobileWorkflowCore.CredentialError>
   func removePassword(key: Swift.String) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
 }
@@ -904,6 +925,7 @@ public protocol CredentializedAsyncTask : MobileWorkflowCore.AsyncTask, MobileWo
 final public class SecurityStore : MobileWorkflowCore.SecurityStoreProtocol {
   public init()
   final public func storePassword(key: Swift.String, value: Foundation.Data) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
+  final public func storePassword(key: Swift.String, value: Foundation.Data, accessible: MobileWorkflowCore.SecurityStoreAccessible) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
   final public func password(for key: Swift.String) -> Swift.Result<Foundation.Data?, MobileWorkflowCore.CredentialError>
   final public func removePassword(key: Swift.String) -> Swift.Result<Swift.Void, MobileWorkflowCore.CredentialError>
   @objc deinit
@@ -1464,6 +1486,7 @@ public enum MWPDFStepViewControllerError : Foundation.LocalizedError {
   @_Concurrency.MainActor(unsafe) open func load()
   @_Concurrency.MainActor(unsafe) public func load(pdfURL: Swift.String?, completion: ((Swift.Result<PDFKit.PDFDocument, Swift.Error>) -> Swift.Void)?)
   @_Concurrency.MainActor(unsafe) open func prepare(document: PDFKit.PDFDocument) -> Combine.AnyPublisher<PDFKit.PDFDocument, Swift.Error>
+  @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step, nibName nibNameOrNil: Swift.String?, bundle nibBundleOrNil: Foundation.Bundle?)
   @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step)
   @_Concurrency.MainActor(unsafe) @objc required dynamic public init?(coder: Foundation.NSCoder)
   @objc deinit
@@ -1671,6 +1694,7 @@ extension UIKit.UIFont {
   }
   @_Concurrency.MainActor(unsafe) public func showLoading()
   @_Concurrency.MainActor(unsafe) public func hideLoading()
+  @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step, nibName nibNameOrNil: Swift.String?, bundle nibBundleOrNil: Foundation.Bundle?)
   @_Concurrency.MainActor(unsafe) override public init(step: MobileWorkflowCore.Step)
   @_Concurrency.MainActor(unsafe) @objc required dynamic public init?(coder: Foundation.NSCoder)
   @objc deinit
@@ -1723,7 +1747,7 @@ public protocol TaskExecutor {
 extension MobileWorkflowCore.TaskExecutor {
   public func perform<T>(task: T, session: MobileWorkflowCore.ContentProvider) -> Combine.AnyPublisher<T.Response, Swift.Error> where T : MobileWorkflowCore.AsyncTask
 }
-public protocol AsyncTaskService : MobileWorkflowCore.TaskExecutor {
+public protocol AsyncTaskService : MobileWorkflowCore.Reinitializable, MobileWorkflowCore.TaskExecutor {
   @discardableResult
   func canPerform<T>(task: T) -> Swift.Bool where T : MobileWorkflowCore.AsyncTask
   func perform<T>(task: T, session: MobileWorkflowCore.ContentProvider, respondOn: Dispatch.DispatchQueue, completion: @escaping (Swift.Result<T.Response, Swift.Error>) -> Swift.Void) where T : MobileWorkflowCore.AsyncTask
@@ -1834,13 +1858,6 @@ public typealias MobileWorkflowServiceType = MobileWorkflowCore.ServiceType
 public protocol ServiceType : MobileWorkflowCore.NamedType {
   func buildService(with config: MobileWorkflowCore.ServiceConfiguration) throws -> MobileWorkflowCore.AsyncTaskService?
 }
-public protocol BackgroundService : MobileWorkflowCore.NamedType {
-  var id: Swift.String { get }
-  func provide(services: MobileWorkflowCore.StepServices, session: MobileWorkflowCore.Session)
-  func loadConfiguration(configuration: [Swift.String : Any])
-  func restore(configuration: Any)
-  func saveConfiguration() -> Any
-}
 @available(*, deprecated, renamed: "Plugin")
 public typealias MobileWorkflowPlugin = MobileWorkflowCore.Plugin
 public protocol Plugin {
@@ -1864,16 +1881,12 @@ extension MobileWorkflowCore.Plugin {
     get
   }
   public static func buildInterceptors(credentialStore: MobileWorkflowCore.CredentialStoreProtocol) -> [MobileWorkflowCore.AsyncTaskInterceptor]
+  public static func reinitialize()
 }
 @available(*, deprecated, renamed: "BuildableStep")
 public typealias MobileWorkflowStep = MobileWorkflowCore.BuildableStep
 extension MobileWorkflowCore.ServiceType {
   public func buildDecodableService<T>(type: T.Type, with config: MobileWorkflowCore.ServiceConfiguration) throws -> T where T : MobileWorkflowCore.AsyncTaskService, T : Swift.Decodable
-}
-extension MobileWorkflowCore.BackgroundService {
-  public var id: Swift.String {
-    get
-  }
 }
 public enum L10n {
   public enum Alert {
@@ -2197,6 +2210,16 @@ extension UIKit.UIImage {
 extension UIKit.UIImageView {
   @_Concurrency.MainActor(unsafe) public func transition(to image: UIKit.UIImage?, animated: Swift.Bool, completion: ((Swift.Bool) -> Swift.Void)? = nil)
 }
+public protocol BackgroundService : MobileWorkflowCore.NamedType, MobileWorkflowCore.Reinitializable {
+  var id: Swift.String { get }
+  func provide(services: MobileWorkflowCore.StepServices, session: MobileWorkflowCore.Session)
+  func loadConfiguration(configuration: [Swift.String : Any])
+}
+extension MobileWorkflowCore.BackgroundService {
+  public var id: Swift.String {
+    get
+  }
+}
 extension WebKit.WKWebView {
   @_Concurrency.MainActor(unsafe) public func configureAppBoundDomains()
 }
@@ -2318,6 +2341,8 @@ extension MobileWorkflowCore.StepLinkType : Swift.Hashable {}
 extension MobileWorkflowCore.CredentialType : Swift.Equatable {}
 extension MobileWorkflowCore.CredentialType : Swift.Hashable {}
 extension MobileWorkflowCore.CredentialType : Swift.RawRepresentable {}
+extension MobileWorkflowCore.SecurityStoreAccessible : Swift.Equatable {}
+extension MobileWorkflowCore.SecurityStoreAccessible : Swift.Hashable {}
 extension MobileWorkflowCore.LinkType : Swift.Equatable {}
 extension MobileWorkflowCore.LinkType : Swift.Hashable {}
 extension MobileWorkflowCore.LinkType : Swift.RawRepresentable {}
