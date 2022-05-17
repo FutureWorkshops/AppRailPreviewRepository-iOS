@@ -731,6 +731,7 @@ public struct Analytics {
 @available(*, deprecated, renamed: "MWVideoTableViewCell")
 public typealias MobileWorkflowVideoTableViewCell = MobileWorkflowCore.MWVideoTableViewCell
 @objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @_Concurrency.MainActor(unsafe) public class MWVideoTableViewCell : MobileWorkflowCore.MWImageTableViewCell {
+  @_Concurrency.MainActor(unsafe) override public func configureTheme(_ theme: MobileWorkflowCore.Theme)
   @_Concurrency.MainActor(unsafe) override public func configure(backgroundImage: UIKit.UIImage? = nil, animated: Swift.Bool = false)
   @objc deinit
 }
@@ -1826,6 +1827,7 @@ public struct Theme {
   public let primarySectionBackgroundColor: UIKit.UIColor
   public let marginBackgroundColor: UIKit.UIColor
   public let imagePlaceholderBackgroundColor: UIKit.UIColor
+  public var imagePlaceholderIconTintColor: UIKit.UIColor
   public let primaryTextColor: UIKit.UIColor
   public let secondaryTextColor: UIKit.UIColor
   public let warningTextColor: UIKit.UIColor
